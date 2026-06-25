@@ -11,3 +11,7 @@ sa-key.json
 __pycache__/
 *.pyc
 .DS_Store
+mlops_deploy
+mlops_deploy.pub
+Day21_User_accessKeys.csv
+day21.pem
