@@ -52,11 +52,18 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Authenticate to AWS
+        env:
+          CREDS: ${{ secrets.CLOUD_CREDENTIALS }}
         run: |
-          AWS_KEY=$(python -c "import json,sys; d=json.loads('${{ secrets.CLOUD_CREDENTIALS }}'); print(d['aws_access_key_id'])")
-          AWS_SECRET=$(python -c "import json,sys; d=json.loads('${{ secrets.CLOUD_CREDENTIALS }}'); print(d['aws_secret_access_key'])")
-          echo "AWS_ACCESS_KEY_ID=$AWS_KEY" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET" >> $GITHUB_ENV
+          echo "$CREDS" > /tmp/creds.json
+          python - <<'EOF'
+          import json, os
+          with open('/tmp/creds.json') as f:
+              d = json.load(f)
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f"AWS_ACCESS_KEY_ID={d['aws_access_key_id']}\n")
+              env.write(f"AWS_SECRET_ACCESS_KEY={d['aws_secret_access_key']}\n")
+          EOF
 
       - name: Pull data with DVC
         run: dvc pull data/train_phase1.csv.dvc data/eval.csv.dvc
